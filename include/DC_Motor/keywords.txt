@@ -1,0 +1,32 @@
+#######################################
+# Syntax Coloring Map For OneWire
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+DC_Motor	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+Run	KEYWORD2
+stop	KEYWORD2
+enable	KEYWORD2
+disable	KEYWORD
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+SPEED_MAX	LITERAL1
+SPEED_MIN	LITERAL1
+FORWORD		LITERAL1
+BACKWORD	LITERAL1
+

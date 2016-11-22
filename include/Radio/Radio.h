@@ -3,7 +3,9 @@
 
 #include "Arduino.h"
 
-#define  PRINT_ALL_CHANNELS 1
+#define  PRINT_ALL_CHANNELS 0
+
+#define CHANNELS   6
 
 #define CH1_IN_PIN 22
 #define CH2_IN_PIN 24

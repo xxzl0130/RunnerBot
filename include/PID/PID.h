@@ -3,8 +3,8 @@
 
 typedef double PID_TYPE;
 
-#define ENABLE_INT_LIMIT
-#define ENABLE_OUT_LIMIT
+#define ENABLE_INT_LIMIT 1
+#define ENABLE_OUT_LIMIT 1
 
 PID_TYPE limit(PID_TYPE x,PID_TYPE Min,PID_TYPE Max);
 
