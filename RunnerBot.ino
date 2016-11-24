@@ -18,12 +18,12 @@ PID pid(5, 0.001, 0.0001, 10000, 0, 2000, 0);
 DC_Motor motor(MOTOR_PIN1, MOTOR_PIN2);
 int radioSignals[CHANNELS + 2]; // 飞控发来的信号(0-1000)
 int ctrlSignals[CHANNELS + 2]; // 转换成所需的控制量
+uchr ledState = 0;
 
 #define MPU JY901
 
 void work();
 void convertSignals();
-
 void setup()
 {
 	Serial.begin(9600);
@@ -45,31 +45,40 @@ void setup()
 	workLoop.setFrequency(CONTROL_FREQUENCE);
 	workLoop.start();
 
+	pinMode(LED, OUTPUT);
+
 	MPU.attach(Serial1);
 }
 
 void loop()
 {
-
 	if (bUpdateFlagsShared == ALL_UPD_FLAG)
 	{
 		updateRadio();
 		getRadio(radioSignals);
-		holderServo1.writeMicroseconds(1000 + radioSignals[1]);
+		//holderServo1.writeMicroseconds(1000 + radioSignals[1]);
+		
 	}
 	//delay(500);
 }
 
 void work()
 {
+	digitalWrite(13, ledState ^= 1);
+	convertSignals();
 	if (ctrlSignals[5] == SWITCH_HIGH)
 	{
-		convertSignals();
 		motor.run(FORWORD, ctrlSignals[3]);
 		weightServo1.write(ctrlSignals[1]);
 		weightServo2.write(ctrlSignals[1]);
 		holderServo1.write(ctrlSignals[2]);
 		holderServo2.write(ctrlSignals[2]);
+		for (int i = 1; i <= CHANNELS; ++i)
+		{
+			Serial.print(ctrlSignals[i]);
+			Serial.print("\t");
+		}
+		Serial.print("\n");
 	}
 }
 
@@ -81,11 +90,12 @@ CH3：油门
 CH4：滚转（雾）
 CH5：3段开关
 CH6：旋钮
+TODO:检查map函数对负数的变换
 */
 void convertSignals()
 {
-	ctrlSignals[1] = static_cast<uint>(map_f(radioSignals[1], MAP_RADIO_LOW, MAP_RADIO_HIGH, WEIGHT_MAX_ANGLE, WEIGHT_MIN_ANGLE) + 0.5);
-	ctrlSignals[2] = static_cast<uint>(map_f(radioSignals[2], MAP_RADIO_LOW, MAP_RADIO_HIGH, HOLDER_MAX_ANGLE, HOLDER_MIN_ANGLE) + 0.5);
+	ctrlSignals[1] = static_cast<uint>(map_f(radioSignals[1], MAP_RADIO_LOW, MAP_RADIO_HIGH, WEIGHT_MIN_ANGLE, WEIGHT_MAX_ANGLE) + 0.5);
+	ctrlSignals[2] = static_cast<uint>(map_f(radioSignals[2], MAP_RADIO_LOW, MAP_RADIO_HIGH, HOLDER_MIN_ANGLE, HOLDER_MAX_ANGLE) + 0.5);
 	ctrlSignals[3] = static_cast<uint>(map_f(radioSignals[3], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5);
 	ctrlSignals[4] = static_cast<uint>(map_f(radioSignals[4], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5);
 	

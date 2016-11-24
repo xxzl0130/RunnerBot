@@ -40,3 +40,5 @@
 
 #define HOLDER_MAX_ANGLE  120
 #define HOLDER_MIN_ANGLE  -120
+
+#define LED 13
