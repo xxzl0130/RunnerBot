@@ -42,3 +42,10 @@
 #define HOLDER_MIN_ANGLE  -120
 
 #define LED 13
+
+/*
+是否使用定时器调用控制循环。
+1 使用定时器
+0 在每次Radio更新后启动控制
+*/
+#define USE_TIMER_LOOP     0

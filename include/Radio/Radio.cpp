@@ -48,43 +48,50 @@ bool getRadio(int pChannels[])
 		pChannels[i] = map_f(pChannels[i], minValue[i], maxValue[i], MAP_RADIO_LOW, MAP_RADIO_HIGH);
 	}
 
-	if (DEADZONE_ENABLE)
+#if DEADZONE_ENABLE
+	int i;
+	for (i = 2; i <= 4; ++i)
 	{
-		int i;
-		for (i = 2; i <= 4; ++i)
+		if (abs( pChannels[i] - MAP_RADIO_MID) < DEADZONE)
 		{
-			if (abs( pChannels[i] - MAP_RADIO_MID) < DEADZONE)
-			{
-				pChannels[i] = MAP_RADIO_MID;
-			}
-			else
-			{
-				pChannels[i] = pChannels[i] - sgn(pChannels[i] - MAP_RADIO_MID) * DEADZONE;
-			}
-		}
-
-		//Special case for the throttle
-		if (pChannels[1] < DEADZONE)
-		{
-			pChannels[1] = MAP_RADIO_LOW;
+			pChannels[i] = MAP_RADIO_MID;
 		}
 		else
 		{
-			pChannels[1] = pChannels[1] - DEADZONE;
+			pChannels[i] = pChannels[i] - sgn(pChannels[i] - MAP_RADIO_MID) * DEADZONE;
 		}
 	}
-
-	if (PRINT_ALL_CHANNELS)
+	//Special case for the throttle
+	if (pChannels[1] < DEADZONE)
 	{
-		int i;
-		for (i = 1; i <= 6; ++i)
-		{
-			Serial.print(pChannels[i]);
-			Serial.print("\t");
-		}
-		Serial.print("\n");
+		pChannels[1] = MAP_RADIO_LOW;
 	}
+	else
+	{
+		pChannels[1] = pChannels[1] - DEADZONE;
+	}
+#endif //DEADZONE_ENABLE
+
+#if PRINT_ALL_CHANNELS
+	int i;
+	for (i = 1; i <= 6; ++i)
+	{
+		Serial.print(pChannels[i]);
+		Serial.print("\t");
+	}
+	Serial.print("\n");
+#endif //PRINT_ALL_CHANNELS
 	return true;
+}
+
+void initRadio()
+{
+	attachInterrupt(CH1_IN_PIN, calcCh1, CHANGE);
+	attachInterrupt(CH2_IN_PIN, calcCh2, CHANGE);
+	attachInterrupt(CH3_IN_PIN, calcCh3, CHANGE);
+	attachInterrupt(CH4_IN_PIN, calcCh4, CHANGE);
+	attachInterrupt(CH5_IN_PIN, calcCh5, CHANGE);
+	attachInterrupt(CH6_IN_PIN, calcCh6, CHANGE);
 }
 
 void updateRadio()

@@ -29,22 +29,17 @@ void setup()
 	Serial.begin(9600);
 	Serial1.begin(9600); // MPU9250
 
-	attachInterrupt(CH1_IN_PIN, calcCh1, CHANGE);
-	attachInterrupt(CH2_IN_PIN, calcCh2, CHANGE);
-	attachInterrupt(CH3_IN_PIN, calcCh3, CHANGE);
-	attachInterrupt(CH4_IN_PIN, calcCh4, CHANGE);
-	attachInterrupt(CH5_IN_PIN, calcCh5, CHANGE);
-	attachInterrupt(CH6_IN_PIN, calcCh6, CHANGE);
+	initRadio();
 	
 	holderServo1.attach(HOLDER_SERVO_1_PIN);
 	holderServo2.attach(HOLDER_SERVO_2_PIN);
 	weightServo1.attach(WEIGHT_SERVO_1_PIN);
 	weightServo2.attach(WEIGHT_SERVO_2_PIN);
-
+#if USE_TIMER_LOOP
 	workLoop.attachInterrupt(work);
 	workLoop.setFrequency(CONTROL_FREQUENCE);
 	workLoop.start();
-
+#endif //USE_TIMER_LOOP
 	pinMode(LED, OUTPUT);
 
 	MPU.attach(Serial1);
@@ -56,8 +51,9 @@ void loop()
 	{
 		updateRadio();
 		getRadio(radioSignals);
-		//holderServo1.writeMicroseconds(1000 + radioSignals[1]);
-		
+#if !USE_TIMER_LOOP
+		work();
+#endif
 	}
 	//delay(500);
 }
@@ -90,14 +86,13 @@ CH3：油门
 CH4：滚转（雾）
 CH5：3段开关
 CH6：旋钮
-TODO:检查map函数对负数的变换
 */
 void convertSignals()
 {
-	ctrlSignals[1] = static_cast<uint>(map_f(radioSignals[1], MAP_RADIO_LOW, MAP_RADIO_HIGH, WEIGHT_MIN_ANGLE, WEIGHT_MAX_ANGLE) + 0.5);
-	ctrlSignals[2] = static_cast<uint>(map_f(radioSignals[2], MAP_RADIO_LOW, MAP_RADIO_HIGH, HOLDER_MIN_ANGLE, HOLDER_MAX_ANGLE) + 0.5);
-	ctrlSignals[3] = static_cast<uint>(map_f(radioSignals[3], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5);
-	ctrlSignals[4] = static_cast<uint>(map_f(radioSignals[4], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5);
+	ctrlSignals[1] = static_cast<int>(map_f(radioSignals[1], MAP_RADIO_LOW, MAP_RADIO_HIGH, WEIGHT_MIN_ANGLE, WEIGHT_MAX_ANGLE) + 0.5);
+	ctrlSignals[2] = static_cast<int>(map_f(radioSignals[2], MAP_RADIO_LOW, MAP_RADIO_HIGH, HOLDER_MIN_ANGLE, HOLDER_MAX_ANGLE) + 0.5);
+	ctrlSignals[3] = static_cast<int>(map_f(radioSignals[3], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5);
+	ctrlSignals[4] = static_cast<int>(map_f(radioSignals[4], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5);
 	
 	if(abs(radioSignals[5] - 500) <= 20)
 	{

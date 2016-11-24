@@ -22,13 +22,6 @@
 #define CH6_FLAG 32
 #define ALL_UPD_FLAG 0x3f
 
-#define MID_1 (MAX_1 + MIN_1)/2
-#define MID_2 (MAX_2 + MIN_2)/2
-#define MID_3 (MAX_3 + MIN_3)/2
-#define MID_4 (MAX_4 + MIN_4)/2
-#define MID_5 (MAX_5 + MIN_5)/2
-#define MID_6 (MAX_6 + MIN_6)/2
-
 #define MAP_RADIO_HIGH 1000
 #define MAP_RADIO_LOW 0
 #define MAP_RADIO_MID (MAP_RADIO_HIGH + MAP_RADIO_LOW)/2
@@ -50,7 +43,7 @@ const int midValue[] = {0,MID(maxValue[1],minValue[1]),MID(maxValue[2],minValue[
 
 void updateRadio();
 bool getRadio(int pChannels[]);
-
+void initRadio();
 void calcCh1();
 void calcCh2();
 void calcCh3();
