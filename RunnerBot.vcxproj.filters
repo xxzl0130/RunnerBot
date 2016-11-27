@@ -47,20 +47,20 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="include\Radio\Radio.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
-    <ClCompile Include="include\Radio\Utils.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
-    <ClCompile Include="include\PID\PID.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
     <ClCompile Include="include\DueTimer\DueTimer.cpp">
-      <Filter>Resource Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="include\JY901\JY901.cpp">
-      <Filter>Resource Files</Filter>
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\PID\PID.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\Radio\Radio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\Radio\Utils.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
