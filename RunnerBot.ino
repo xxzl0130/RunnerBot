@@ -14,10 +14,21 @@ volatile uint8_t bUpdateFlagsShared;
 DueTimer workLoop = Timer.getAvailable();
 
 Servo holderServo1,holderServo2,weightServo1,weightServo2;
-PID pid(5, 0.001, 0.0001, 10000, 0, 2000, 0);
+PID pidGyro(0.5, 0.001, 0.0001, GYRO_Z_MAX, GYRO_Z_MIN, SERVO_MAX - SERVO_MID, SERVO_MIN - SERVO_MID);
 DC_Motor motor(MOTOR_PIN1, MOTOR_PIN2);
 int radioSignals[CHANNELS + 2]; // 飞控发来的信号(0-1000)
-int ctrlSignals[CHANNELS + 2]; // 转换成所需的控制量
+Point<float> acc, gyro, mag;
+
+/*
+控制目标量
+CH1:偏航角速度
+CH2:俯仰角
+CH3:油门量
+CH4:滚转（不用）
+CH5:3段开关
+CH6:旋钮
+*/
+int ctrlSignals[CHANNELS + 2];
 uchr ledState = 0;
 
 #define MPU JY901
@@ -55,7 +66,6 @@ void loop()
 		work();
 #endif
 	}
-	//delay(500);
 }
 
 void work()
@@ -65,8 +75,10 @@ void work()
 	if (ctrlSignals[5] == SWITCH_HIGH)
 	{
 		motor.run(FORWORD, ctrlSignals[3]);
-		weightServo1.write(ctrlSignals[1]);
-		weightServo2.write(ctrlSignals[1]);
+		
+		int gyroCtrl = pidGyro.update(gyro.z - ctrlSignals[1], gyro.z);
+		weightServo1.writeMicroseconds(SERVO_MID + gyroCtrl);
+		weightServo2.writeMicroseconds(SERVO_MID + gyroCtrl);
 		holderServo1.write(ctrlSignals[2]);
 		holderServo2.write(ctrlSignals[2]);
 		for (int i = 1; i <= CHANNELS; ++i)
@@ -80,16 +92,10 @@ void work()
 
 /*
 将遥控器发来的0-1000的信号量变为各器件的控制量范围
-CH1：偏航角
-CH2：俯仰角
-CH3：油门
-CH4：滚转（雾）
-CH5：3段开关
-CH6：旋钮
 */
 void convertSignals()
 {
-	ctrlSignals[1] = static_cast<int>(map_f(radioSignals[1], MAP_RADIO_LOW, MAP_RADIO_HIGH, WEIGHT_MIN_ANGLE, WEIGHT_MAX_ANGLE) + 0.5);
+	ctrlSignals[1] = static_cast<int>(map_f(radioSignals[1], MAP_RADIO_LOW, MAP_RADIO_HIGH, GYRO_Z_MIN, GYRO_Z_MAX) * 100 + 0.5);
 	ctrlSignals[2] = static_cast<int>(map_f(radioSignals[2], MAP_RADIO_LOW, MAP_RADIO_HIGH, HOLDER_MIN_ANGLE, HOLDER_MAX_ANGLE) + 0.5);
 	ctrlSignals[3] = static_cast<int>(map_f(radioSignals[3], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5);
 	ctrlSignals[4] = static_cast<int>(map_f(radioSignals[4], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5);
@@ -111,4 +117,13 @@ void convertSignals()
 void serialEvent1()
 {
 	MPU.receiveSerialData();
+	acc.x = MPU.getAccX();
+	acc.y = MPU.getAccY();
+	acc.z = MPU.getAccZ();
+	gyro.x = MPU.getGyroX();
+	gyro.y = MPU.getGyroY();
+	gyro.z = MPU.getGyroZ();
+	mag.x = MPU.getMagX();
+	mag.y = MPU.getMagY();
+	mag.z = MPU.getMagZ();
 }

@@ -35,13 +35,17 @@
 #define MOTOR_PIN1         2
 #define MOTOR_PIN2         3
 
-#define WEIGHT_MAX_ANGLE   30
-#define WEIGHT_MIN_ANGLE   -30
+#define GYRO_Z_MAX         10
+#define GYRO_Z_MIN         -10
 
-#define HOLDER_MAX_ANGLE  120
-#define HOLDER_MIN_ANGLE  -120
+#define HOLDER_MAX_ANGLE   120
+#define HOLDER_MIN_ANGLE   -120
 
 #define LED 13
+
+#define SERVO_MAX          2500
+#define SERVO_MID	       1500
+#define SERVO_MIN          500
 
 /*
 是否使用定时器调用控制循环。
@@ -49,3 +53,12 @@
 0 在每次Radio更新后启动控制
 */
 #define USE_TIMER_LOOP     0
+
+template<typename T>
+class Point
+{
+public:
+	T x, y, z;
+	Point(){}
+	Point(T x_,T y_,T z_):x(x_),y(y_),z(z_){}
+};
