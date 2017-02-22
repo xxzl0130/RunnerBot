@@ -8,13 +8,13 @@ TX <---> 0(Rx)
 void setup() 
 {
 	Serial.begin(9600);
-
+  Serial1.begin(9600);
 }
 
 void loop() 
 {
-	while (Serial.available()) {
-		JY901.copeSerialData(Serial.read());
+	while (Serial1.available()) {
+		JY901.copeSerialData(Serial1.read());
 	}
 
 

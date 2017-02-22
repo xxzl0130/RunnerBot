@@ -17,7 +17,8 @@ Servo holderServo1,holderServo2,weightServo1,weightServo2;
 PID pidGyro(0.5, 0.001, 0.0001, GYRO_Z_MAX, GYRO_Z_MIN, SERVO_MAX - SERVO_MID, SERVO_MIN - SERVO_MID);
 DC_Motor motor(MOTOR_PIN1, MOTOR_PIN2);
 int radioSignals[CHANNELS + 2]; // 飞控发来的信号(0-1000)
-Point<float> acc, gyro, mag;
+Point<float> acc, gyro;
+double rool, pitch, yaw;
 
 /*
 控制目标量
@@ -54,10 +55,13 @@ void setup()
 	pinMode(LED, OUTPUT);
 
 	MPU.attach(Serial1);
+	MPU.setAccRange(4);
+	MPU.setGyroRange(500);
 }
 
 void loop()
 {
+	/*
 	if (bUpdateFlagsShared == ALL_UPD_FLAG)
 	{
 		updateRadio();
@@ -65,7 +69,14 @@ void loop()
 #if !USE_TIMER_LOOP
 		work();
 #endif
-	}
+	}*/
+	Serial.print(MPU.getRoll());
+	Serial.print(" ");
+	Serial.print(MPU.getPitch());
+	Serial.print(" ");
+	Serial.println(MPU.getYaw());
+	delay(300);
+
 }
 
 void work()
@@ -123,7 +134,7 @@ void serialEvent1()
 	gyro.x = MPU.getGyroX();
 	gyro.y = MPU.getGyroY();
 	gyro.z = MPU.getGyroZ();
-	mag.x = MPU.getMagX();
-	mag.y = MPU.getMagY();
-	mag.z = MPU.getMagZ();
+	rool = MPU.getRoll();
+	pitch = MPU.getPitch();
+	yaw = MPU.getYaw();
 }

@@ -2,7 +2,7 @@
 #include "JY901_dfs.h"
 #include <string.h>
 #include <Arduino.h>
-#include "C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src/Wire.h"
+#include <Wire.h>
 
 CJY901::CJY901()
 {
@@ -148,63 +148,63 @@ double CJY901::getAccX()
 {
 	if (transferMode_)
 		readRegisters(address_, JY_AX, 2, (int8_t *)&JY901_data.acc.x);
-	return JY901_data.acc.x / (32768.0/16.0);
+	return JY901_data.acc.x / (32768.0/accRange);
 }
 
 double CJY901::getAccY()
 {
 	if (transferMode_)
 		readRegisters(address_, JY_AY, 2, (int8_t *)&JY901_data.acc.y);
-	return JY901_data.acc.y / (32768.0/16.0);
+	return JY901_data.acc.y / (32768.0/accRange);
 }
 
 double CJY901::getAccZ()
 {
 	if (transferMode_)
 		readRegisters(address_, JY_AZ, 2, (int8_t *)&JY901_data.acc.z);
-	return JY901_data.acc.z / (32768.0/16.0);
+	return JY901_data.acc.z / (32768.0/accRange);
 }
 
 double CJY901::getGyroX()
 {
 	if (transferMode_)
 		readRegisters(address_, JY_GX, 2, (int8_t *)&JY901_data.gyro.x);
-	return JY901_data.gyro.x / (32768.0/2000.0);
+	return JY901_data.gyro.x / (32768.0/gyroRange);
 }
 
 double CJY901::getGyroY()
 {
 	if (transferMode_)
 		readRegisters(address_, JY_GY, 2, (int8_t *)&JY901_data.gyro.y);
-	return JY901_data.gyro.y / (32768.0/2000.0);
+	return JY901_data.gyro.y / (32768.0/gyroRange);
 }
 
 double CJY901::getGyroZ()
 {
 	if (transferMode_)
 		readRegisters(address_, JY_GZ, 2, (int8_t *)&JY901_data.gyro.z);
-	return JY901_data.gyro.z / (32768.0/2000.0);
+	return JY901_data.gyro.z / (32768.0/gyroRange);
 }
 
 double CJY901::getMagX()
 {
 	if (transferMode_)
 		readRegisters(address_, JY_HX, 2, (int8_t *)&JY901_data.mag.x);
-	return JY901_data.mag.x / (32768.0/180.0);
+	return JY901_data.mag.x;
 }
 
 double CJY901::getMagY()
 {
 	if (transferMode_)
 		readRegisters(address_, JY_HY, 2, (int8_t *)&JY901_data.mag.y);
-	return JY901_data.mag.y / (32768.0/180.0);
+	return JY901_data.mag.y;
 }
 
 double CJY901::getMagZ()
 {
 	if (transferMode_)
 		readRegisters(address_, JY_HZ, 2, (int8_t *)&JY901_data.mag.z);
-	return JY901_data.mag.z / (32768.0/180.0);
+	return JY901_data.mag.z;
 }
 
 int16_t CJY901::getAccRawX()
@@ -384,6 +384,26 @@ double CJY901::getGPSV(void)    //km/h
 		readRegisters(address_, JY_GPSVL, 4, (int8_t *)&JY901_data.GPSVelocity);
 
 	return JY901_data.GPSVelocity / 1000.0;
+}
+
+uint16_t CJY901::getAccRange()const
+{
+	return accRange;
+}
+
+void CJY901::setAccRange(uint16_t range)
+{
+	accRange = range;
+}
+
+uint16_t CJY901::getGyroRange()const
+{
+	return gyroRange;
+}
+
+void CJY901::setGyroRange(uint16_t range)
+{
+	gyroRange = range;
 }
 
 void CJY901::saveConf(void)

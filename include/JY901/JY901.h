@@ -47,6 +47,10 @@ class CJY901
 	double   getGPSH();                             //GPS 高度
 	double   getGPSY();                             //GPS 航向角
 	double   getGPSV();                             //GPS 地速
+	uint16_t getAccRange()const;					//获取加速度计量程
+	void     setAccRange(uint16_t range);		  	//设置加速度计量程
+	uint16_t getGyroRange()const;					//获取陀螺仪量程
+	void     setGyroRange(uint16_t range);    		//设置陀螺仪量程
 	void     saveConf();                            //保存配置
 	void     quitCali();                            //退出校准
 	void     caliIMU();                             //IMU校准
@@ -64,6 +68,7 @@ class CJY901
 	unsigned long lastTime;
 	uint8_t rxBuffer[12];
 	uint8_t rxCnt = 0;
+	int16_t accRange = 16, gyroRange = 2000;
 	void readRegisters(uint8_t deviceAddr,uint8_t addressToRead, uint8_t bytesToRead, int8_t * dest);
 	void writeRegister(uint8_t deviceAddr,uint8_t addressToWrite,uint8_t bytesToRead, int8_t *dataToWrite);
 	struct
