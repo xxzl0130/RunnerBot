@@ -18,10 +18,21 @@
 #define Deg2Rad(x) ((x) / 180.0 * M_PI)
 #define Rad2Deg(x) ((x) / M_PI * 180.0)
 
-#define HOLDER_SERVO_1_PIN 50
-#define HOLDER_SERVO_2_PIN 51
-#define WEIGHT_SERVO_1_PIN 52
-#define WEIGHT_SERVO_2_PIN 53
+#define HOLDER_SERVO_1_PIN 22
+#define HOLDER_SERVO_2_PIN 23
+#define WEIGHT_SERVO_1_PIN 24
+#define WEIGHT_SERVO_2_PIN 25
+
+/*
+	   ICSP
+1_MISO	oo	2_+Vcc
+3_SCK	oo	4_MOSI
+5_REST	oo	6_GND
+*/
+#define MOSI	ICSP_4
+#define MISO	ICSP_1
+#define CLK		ICSP_3
+#define SD_CS	52
 
 #define CONTROL_FREQUENCE  20
 
@@ -52,7 +63,27 @@
 1 使用定时器
 0 在每次Radio更新后启动控制
 */
-#define USE_TIMER_LOOP     0
+#define USE_TIMER_LOOP		0
+#define USE_LOG_FILE		1
+
+#define LOG_FILE_NAME		"log.txt"
+#define LOG_TITLE			"time,ch1,ch2,ch3,ch4,ch5,ch6,ax,ay,az,gx,gy,gz,roll,pitch,yaw"
+
+/*
+控制目标量
+CH1:偏航角速度
+CH2:俯仰角
+CH3:油门量
+CH4:滚转（不用）
+CH5:3段开关
+CH6:旋钮
+*/
+#define yawCh		1
+#define pitchCh		2
+#define throCh		3
+#define rollCh		4
+#define switchCh	5
+#define knobCh		6
 
 template<typename T>
 class Point

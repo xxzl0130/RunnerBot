@@ -1,8 +1,7 @@
 #include "include/Radio/Radio.h"
 #include <Servo.h>
-#ifndef Servo_h
-#include <Servo/src/Servo.h>
-#endif
+#include <SPI.h>
+#include <SD.h>
 #include "include/DueTimer/DueTimer.h"
 #include "include/PID/PID.h"
 #include "include/JY901/JY901.h"
@@ -11,14 +10,21 @@
 #include "defs.h"
 
 volatile uint8_t bUpdateFlagsShared;
+
+#if USE_TIMER_LOOP
 DueTimer workLoop = Timer.getAvailable();
+#endif //USE_TIMER_LOOP
 
 Servo holderServo1,holderServo2,weightServo1,weightServo2;
 PID pidGyro(0.5, 0.001, 0.0001, GYRO_Z_MAX, GYRO_Z_MIN, SERVO_MAX - SERVO_MID, SERVO_MIN - SERVO_MID);
 DC_Motor motor(MOTOR_PIN1, MOTOR_PIN2);
 int radioSignals[CHANNELS + 2]; // 飞控发来的信号(0-1000)
 Point<float> acc, gyro;
-double rool, pitch, yaw;
+double roll, pitch, yaw;
+
+#if USE_LOG_FILE
+File logFile;
+#endif //USE_LOG_FILE
 
 /*
 控制目标量
@@ -36,6 +42,10 @@ uchr ledState = 0;
 
 void work();
 void convertSignals();
+#if USE_LOG_FILE
+void printLog();
+#endif //USE_LOG_FILE
+
 void setup()
 {
 	Serial.begin(9600);
@@ -47,11 +57,23 @@ void setup()
 	holderServo2.attach(HOLDER_SERVO_2_PIN);
 	weightServo1.attach(WEIGHT_SERVO_1_PIN);
 	weightServo2.attach(WEIGHT_SERVO_2_PIN);
+
 #if USE_TIMER_LOOP
 	workLoop.attachInterrupt(work);
 	workLoop.setFrequency(CONTROL_FREQUENCE);
 	workLoop.start();
 #endif //USE_TIMER_LOOP
+
+#if USE_LOG_FILE
+	SD.begin(SD_CS);
+	if(SD.exists(LOG_FILE_NAME))
+	{
+		SD.remove(LOG_FILE_NAME);
+	}
+	logFile = SD.open("log.csv", FILE_WRITE);
+	logFile.println(LOG_TITLE);
+#endif //USE_LOG_FILE
+
 	pinMode(LED, OUTPUT);
 
 	MPU.attach(Serial1);
@@ -61,7 +83,6 @@ void setup()
 
 void loop()
 {
-	/*
 	if (bUpdateFlagsShared == ALL_UPD_FLAG)
 	{
 		updateRadio();
@@ -69,14 +90,10 @@ void loop()
 #if !USE_TIMER_LOOP
 		work();
 #endif
-	}*/
-	Serial.print(MPU.getRoll());
-	Serial.print(" ");
-	Serial.print(MPU.getPitch());
-	Serial.print(" ");
-	Serial.println(MPU.getYaw());
-	delay(300);
-
+#if USE_LOG_FILE
+		printLog();
+#endif
+	}
 }
 
 void work()
@@ -85,19 +102,21 @@ void work()
 	convertSignals();
 	if (ctrlSignals[5] == SWITCH_HIGH)
 	{
-		motor.run(FORWORD, ctrlSignals[3]);
+		motor.run(FORWORD, ctrlSignals[throCh]);
 		
-		int gyroCtrl = pidGyro.update(gyro.z - ctrlSignals[1], gyro.z);
+		int gyroCtrl = pidGyro.update(gyro.z - ctrlSignals[yawCh], gyro.z);
 		weightServo1.writeMicroseconds(SERVO_MID + gyroCtrl);
 		weightServo2.writeMicroseconds(SERVO_MID + gyroCtrl);
-		holderServo1.write(ctrlSignals[2]);
-		holderServo2.write(ctrlSignals[2]);
+		holderServo1.write(ctrlSignals[pitchCh]);
+		holderServo2.write(ctrlSignals[pitchCh]);
+		/*
 		for (int i = 1; i <= CHANNELS; ++i)
 		{
 			Serial.print(ctrlSignals[i]);
 			Serial.print("\t");
 		}
 		Serial.print("\n");
+		*/
 	}
 }
 
@@ -134,7 +153,23 @@ void serialEvent1()
 	gyro.x = MPU.getGyroX();
 	gyro.y = MPU.getGyroY();
 	gyro.z = MPU.getGyroZ();
-	rool = MPU.getRoll();
+	roll = MPU.getRoll();
 	pitch = MPU.getPitch();
 	yaw = MPU.getYaw();
 }
+
+#if USE_LOG_FILE
+void printLog()
+{
+	String log;
+	log += String(millis()) + ',';
+	for(auto i = 1;i <= 6;++i)
+	{
+		log += String(ctrlSignals[i]) + ',';
+	}
+	log += String(acc.x) + ',' + acc.y + ',' + acc.z + ',' + 
+			gyro.x + ',' + gyro.y + ',' + gyro.z + ',' + 
+			roll + ',' + yaw + ',' + pitch + ',';
+	logFile.println(log);
+}
+#endif //USE_LOG_FILE
