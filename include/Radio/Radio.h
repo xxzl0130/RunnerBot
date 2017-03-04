@@ -7,12 +7,12 @@
 
 #define CHANNELS   6
 
-#define CH1_IN_PIN 22
-#define CH2_IN_PIN 24
-#define CH3_IN_PIN 26
-#define CH4_IN_PIN 28
-#define CH5_IN_PIN 30
-#define CH6_IN_PIN 32
+#define CH1_IN_PIN 42
+#define CH2_IN_PIN 44
+#define CH3_IN_PIN 46
+#define CH4_IN_PIN 48
+#define CH5_IN_PIN 50
+#define CH6_IN_PIN 52
 
 #define CH1_FLAG 1
 #define CH2_FLAG 2

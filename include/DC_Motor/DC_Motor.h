@@ -80,45 +80,110 @@ public:
     }
 
     // 反转
-    inline void reverse()
+    void reverse()
     {
         run(currentDir == FORWORD ? BACKWORD : FORWORD,currentSpeed);
     }
 
     // 获取当前速度
-    inline uchr getCurrentSpeed(void)const
+    uchr getCurrentSpeed(void)const
     {
         return currentSpeed;
     }
 
     // 获取当前方向
-    inline Direction getCurrentDir(void)const
+    Direction getCurrentDir(void)const
     {
         return currentDir;
     }
 };
 
 // 带有EN控制口的直流电机
-class DC_Motor_EN:public DC_Motor
+class DC_Motor_EN
 {
 protected:
-    uchr EN_Pin;
+	uchr Pin[2], EN_Pin;
+	uchr currentSpeed;
+	Direction currentDir;
 public:
-    // 初始化参数为两个PWM控制引脚和EN使能引脚
-    DC_Motor_EN(uchr Pin0,uchr Pin1,uchr enPin):DC_Motor(Pin0,Pin1),EN_Pin(enPin)
-    {
-        pinMode(EN_Pin,OUTPUT);
-        digitalWrite(EN_Pin,HIGH);
-    }
+	// 初始化参数为两个PWM控制引脚
+	DC_Motor_EN(uchr Pin0, uchr Pin1, uchr enPin) :currentSpeed(0), currentDir(FORWORD)
+	{
+		Pin[0] = Pin0;
+		Pin[1] = Pin1;
+		EN_Pin = enPin;
 
+		pinMode(Pin[0], OUTPUT);
+		digitalWrite(Pin[0], LOW);
+
+		pinMode(Pin[1], OUTPUT);
+		digitalWrite(Pin[1], LOW);
+
+		pinMode(EN_Pin, OUTPUT);
+		digitalWrite(EN_Pin, LOW);
+	}
+
+	// 运动
+	void run(Direction Dir, uchr Speed)
+	{
+		currentDir = Dir;
+		currentSpeed = Speed;
+		//存储当前的速度与方向
+		digitalWrite(Pin[Dir], HIGH);
+		digitalWrite(Pin[Dir ^ 1], LOW);
+		analogWrite(EN_Pin, Speed);
+	}
+
+	// 停止
+	void stop()
+	{
+		digitalWrite(Pin[0], HIGH);
+		digitalWrite(Pin[1], HIGH);
+		digitalWrite(EN_Pin, LOW);
+		currentSpeed = 0;
+	}
+
+	// 加速
+	void speedUp(int plusSpeed)
+	{
+		if ((int)currentSpeed + plusSpeed > SPEED_MAX)
+		{
+			currentSpeed = SPEED_MAX;
+		}
+		else if (plusSpeed < 0 && -plusSpeed > currentSpeed)
+		{
+			currentSpeed = SPEED_MIN;
+		}
+		//保证加减后的速度还在0-255内
+
+		run(currentDir, currentSpeed);
+	}
+
+	// 反转
+	void reverse()
+	{
+		run(currentDir == FORWORD ? BACKWORD : FORWORD, currentSpeed);
+	}
+
+	// 获取当前速度
+	uchr getCurrentSpeed(void)const
+	{
+		return currentSpeed;
+	}
+
+	// 获取当前方向
+	Direction getCurrentDir(void)const
+	{
+		return currentDir;
+	}
     // 启用电机
-    inline void enable()
+    void enable()
     {
         digitalWrite(EN_Pin,HIGH);
     }
 
     // 停用电机
-    inline void disable()
+    void disable()
     {
         digitalWrite(EN_Pin,LOW);
     }
@@ -158,7 +223,7 @@ public:
     }
 
     // 直线运动
-    inline void run(Direction Dir,uchr Speed)
+    void run(Direction Dir,uchr Speed)
     {
         left.run(Dir,Speed);
         right.run(Dir,Speed);
@@ -168,7 +233,7 @@ public:
     }
 
     // 旋转
-    inline void rotateRun(Direction Dir,uchr Speed)
+    void rotateRun(Direction Dir,uchr Speed)
     {
         left.run(Dir,Speed);
         right.run(Dir == FORWORD ? BACKWORD : FORWORD,Speed);
@@ -176,7 +241,7 @@ public:
     }
 
     // 反向
-    inline void reverse()
+    void reverse()
     {
         left.reverse();
         right.reverse();
@@ -184,37 +249,37 @@ public:
     }
 
     // 加速
-    inline void speedUp(int plusSpeed)
+    void speedUp(int plusSpeed)
     {
         left.speedUp(plusSpeed);
         right.speedUp(plusSpeed);
     }
 
     // 加速旋转
-    inline void rotateSpeedUp(int plusSpeed)
+    void rotateSpeedUp(int plusSpeed)
     {
         left.speedUp(plusSpeed);
         right.speedUp(-plusSpeed);
     }
 
-    inline void stop()
+    void stop()
     {
         left.stop();
         right.stop();
         currentSpeed = 0;
     }
 
-    inline uchr getCurrentSpeed(void)const
+    uchr getCurrentSpeed(void)const
     {
         return currentSpeed;
     }
 
-    inline Direction getCurrentDir(void)const
+    Direction getCurrentDir(void)const
     {
         return currentDir;
     }
 
-    inline bool isRotating(void)const
+    bool isRotating(void)const
     {
         return rotating;
     }
@@ -235,7 +300,7 @@ public:
     {
     }
 
-    inline pairSpeed angleRunSpeed(float &angle,uchr &speed)
+    pairSpeed angleRunSpeed(float &angle,uchr &speed)
     {
         float xAxisSpeed,yAxisSpeed;
         pairSpeed speedRet;
@@ -267,7 +332,7 @@ public:
         return speedRet;
     }
 
-    inline void angleRun(float angle,uchr speed)
+    void angleRun(float angle,uchr speed)
     {
         pairSpeed spd;
 
@@ -281,25 +346,25 @@ public:
         currentSpeed = speed;
     }
 
-    inline void speedUp(int xPlusSpeed,int yPlusSpeed)
+    void speedUp(int xPlusSpeed,int yPlusSpeed)
     {
         xAxis.speedUp(xPlusSpeed);
         yAxis.speedUp(yPlusSpeed);
     }
 
-    inline void rotateSpeedUp(int plusSpeed)
+    void rotateSpeedUp(int plusSpeed)
     {
         xAxis.rotateSpeedUp(plusSpeed);
         yAxis.rotateSpeedUp(plusSpeed);
     }
 
-    inline void stop()
+    void stop()
     {
         xAxis.stop();
         yAxis.stop();
     }
 
-    inline void rotateRun(Direction dir,uchr speed)
+    void rotateRun(Direction dir,uchr speed)
     {
         xAxis.rotateRun(dir,speed);
         yAxis.rotateRun(dir,speed);
@@ -307,13 +372,13 @@ public:
         rotating = true;
     }
 
-    inline void reverse()
+    void reverse()
     {
         xAxis.reverse();
         yAxis.reverse();
     }
 
-    inline void run(float angle,uchr speed,uchr omega,Direction dir)
+    void run(float angle,uchr speed,uchr omega,Direction dir)
     {
         angleRun(angle,speed);
         if(omega)
@@ -329,17 +394,17 @@ public:
         }
     }
 
-    inline uchr getCurrentSpeed(void)const
+    uchr getCurrentSpeed(void)const
     {
         return currentSpeed;
     }
 
-    inline float getCurrentAngle(void)const
+    float getCurrentAngle(void)const
     {
         return currentAngle;
     }
 
-    inline bool isRotating(void)const
+    bool isRotating(void)const
     {
         return rotating;
     }

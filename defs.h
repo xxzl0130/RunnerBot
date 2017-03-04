@@ -45,14 +45,16 @@
 
 #define MOTOR_PIN1         2
 #define MOTOR_PIN2         3
+#define MOTOR_EN		   6
 
 #define GYRO_Z_MAX         10
 #define GYRO_Z_MIN         -10
 
 #define HOLDER_MAX_ANGLE   120
-#define HOLDER_MIN_ANGLE   -120
+#define HOLDER_MIN_ANGLE   0
 
 #define LED 13
+#define BEEPER			   38
 
 #define SERVO_MAX          2500
 #define SERVO_MID	       1500
@@ -64,7 +66,7 @@
 0 在每次Radio更新后启动控制
 */
 #define USE_TIMER_LOOP		0
-#define USE_LOG_FILE		1
+#define USE_LOG_FILE		0
 
 #define LOG_FILE_NAME		"log.txt"
 #define LOG_TITLE			"time,ch1,ch2,ch3,ch4,ch5,ch6,ax,ay,az,gx,gy,gz,roll,pitch,yaw"
