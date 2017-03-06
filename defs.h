@@ -23,17 +23,6 @@
 #define WEIGHT_SERVO_1_PIN 24
 #define WEIGHT_SERVO_2_PIN 25
 
-/*
-	   ICSP
-1_MISO	oo	2_+Vcc
-3_SCK	oo	4_MOSI
-5_REST	oo	6_GND
-*/
-#define MOSI	ICSP_4
-#define MISO	ICSP_1
-#define CLK		ICSP_3
-#define SD_CS	52
-
 #define CONTROL_FREQUENCE  20
 
 #define PWM_MIN            0
@@ -86,6 +75,8 @@ CH6:ÐýÅ¥
 #define rollCh		4
 #define switchCh	5
 #define knobCh		6
+
+#define beep(t)	digitalWrite(BEEPER,HIGH);delay(t);digitalWrite(BEEPER,LOW);
 
 template<typename T>
 class Point

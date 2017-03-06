@@ -1,15 +1,12 @@
 #include "include/Radio/Radio.h"
 #include <Servo.h>
-#include <SPI.h>
-#include <SD.h>
 #include "include/DueTimer/DueTimer.h"
 #include "include/PID/PID.h"
 #include "include/JY901/JY901.h"
 #include "include/Radio/Utils.h"
 #include "include/DC_Motor/DC_Motor.h"
 #include "defs.h"
-
-#define beep(t)	digitalWrite(BEEPER,HIGH);delay(t);digitalWrite(BEEPER,LOW);
+#include "file.h"
 
 volatile uint8_t bUpdateFlagsShared;
 
@@ -23,10 +20,6 @@ DC_Motor motor(MOTOR_PIN1, MOTOR_PIN2);
 int radioSignals[CHANNELS + 2]; // 飞控发来的信号(0-1000)
 Point<float> acc, gyro;
 double roll, pitch, yaw;
-
-#if USE_LOG_FILE
-File logFile;
-#endif //USE_LOG_FILE
 
 /*
 控制目标量
@@ -67,13 +60,7 @@ void setup()
 #endif //USE_TIMER_LOOP
 
 #if USE_LOG_FILE
-	SD.begin(SD_CS);
-	if(SD.exists(LOG_FILE_NAME))
-	{
-		SD.remove(LOG_FILE_NAME);
-	}
-	logFile = SD.open("log.csv", FILE_WRITE);
-	logFile.println(LOG_TITLE);
+	initSD();
 #endif //USE_LOG_FILE
 
 	pinMode(LED, OUTPUT);
@@ -99,11 +86,12 @@ void loop()
 		work();
 #endif
 #if USE_LOG_FILE
-		printLog();
+		printLog(ctrlSignals,acc,gyro,roll,yaw,pitch);
 #endif
 	}
 }
 
+// 主工作函数
 void work()
 {
 	static auto lastStatic = SWITCH_LOW;
@@ -199,19 +187,3 @@ void serialEvent1()
 	pitch = MPU.getPitch();
 	yaw = MPU.getYaw();
 }
-
-#if USE_LOG_FILE
-void printLog()
-{
-	String log;
-	log += String(millis()) + ',';
-	for(auto i = 1;i <= 6;++i)
-	{
-		log += String(ctrlSignals[i]) + ',';
-	}
-	log += String(acc.x) + ',' + acc.y + ',' + acc.z + ',' + 
-			gyro.x + ',' + gyro.y + ',' + gyro.z + ',' + 
-			roll + ',' + yaw + ',' + pitch + ',';
-	logFile.println(log);
-}
-#endif //USE_LOG_FILE
