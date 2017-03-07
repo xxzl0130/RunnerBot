@@ -1,12 +1,13 @@
 #include "include/Radio/Radio.h"
 #include <Servo.h>
+#include "defs.h"
 #include "include/DueTimer/DueTimer.h"
 #include "include/PID/PID.h"
 #include "include/JY901/JY901.h"
 #include "include/Radio/Utils.h"
 #include "include/DC_Motor/DC_Motor.h"
-#include "defs.h"
-#include "file.h"
+#include "include/file/file.h"
+#include "include/Queue.hpp"
 
 volatile uint8_t bUpdateFlagsShared;
 
@@ -30,16 +31,12 @@ CH4:滚转（不用）
 CH5:3段开关
 CH6:旋钮
 */
-int ctrlSignals[CHANNELS + 2];
-uchr ledState = 0;
+CircleQueue_Avg<int> ctrlSignals[CHANNELS + 2];
 
 #define MPU JY901
 
 void work();
 void convertSignals();
-#if USE_LOG_FILE
-void printLog();
-#endif //USE_LOG_FILE
 
 void setup()
 {
@@ -62,13 +59,14 @@ void setup()
 #if USE_LOG_FILE
 	initSD();
 #endif //USE_LOG_FILE
-
-	pinMode(LED, OUTPUT);
+	
 	pinMode(BEEPER, OUTPUT);
 
 	MPU.attach(Serial1);
 	MPU.setAccRange(4);
 	MPU.setGyroRange(500);
+
+	ctrlSignals[throCh].setSize(1);
 
 	beep(500);
 	delay(500);
@@ -94,19 +92,19 @@ void loop()
 // 主工作函数
 void work()
 {
-	static auto lastStatic = SWITCH_LOW;
-	digitalWrite(13, ledState ^= 1);
+	static auto lastState = SWITCH_LOW;
+	
 	convertSignals();
-	if (ctrlSignals[switchCh] == SWITCH_MID)
+	if (ctrlSignals[switchCh].avg() == SWITCH_MID)
 	{
-		if(lastStatic != SWITCH_MID)
+		if (lastState != SWITCH_MID)
 		{
 			beep(100);
 			delay(100);
 			beep(100);
-			lastStatic = SWITCH_MID;
+			lastState = SWITCH_MID;
 		}
-		motor.run(FORWORD, ctrlSignals[throCh]);
+		motor.run(FORWORD, ctrlSignals[throCh].avg());
 		/*
 		int gyroCtrl = pidGyro.update(gyro.z - ctrlSignals[yawCh], gyro.z);
 		weightServo1.writeMicroseconds(SERVO_MID + gyroCtrl);
@@ -114,23 +112,23 @@ void work()
 		holderServo1.write(ctrlSignals[pitchCh]);
 		holderServo2.write(ctrlSignals[pitchCh]);
 		*/
-		weightServo1.writeMicroseconds(radioSignals[yawCh]);
-		weightServo2.writeMicroseconds(radioSignals[yawCh]);
-		holderServo1.writeMicroseconds(radioSignals[pitchCh]);
-		holderServo2.writeMicroseconds(radioSignals[pitchCh]);
-	}
-	else if(ctrlSignals[switchCh] == SWITCH_LOW)
-	{
-		motor.stop();
-		if(lastStatic != SWITCH_LOW)
-		{
-			lastStatic = SWITCH_LOW;
-			beep(500);
-		}
+		weightServo1.writeMicroseconds(radioSignals[yawCh] + 1000);
+		weightServo2.writeMicroseconds(radioSignals[yawCh] + 1000);
+		holderServo1.writeMicroseconds(radioSignals[pitchCh] + 1000);
+		holderServo2.writeMicroseconds(radioSignals[pitchCh] + 1000);
 	}
 	else
 	{
-		if(lastStatic != SWITCH_HIGH)
+		motor.stop();
+		if (ctrlSignals[switchCh].avg() == SWITCH_LOW)
+		{
+			if (lastState != SWITCH_LOW)
+			{
+				lastState = SWITCH_LOW;
+				beep(500);
+			}
+		}
+		else if (lastState != SWITCH_HIGH)
 		{
 			beep(100);
 			delay(100);
@@ -138,12 +136,12 @@ void work()
 			delay(100);
 			beep(100);
 			delay(100);
-			lastStatic = SWITCH_HIGH;
+			lastState = SWITCH_HIGH;
 		}
 	}
 	for (int i = 1; i <= CHANNELS; ++i)
 	{
-		Serial.print(ctrlSignals[i]);
+		Serial.print(ctrlSignals[i].avg());
 		Serial.print("\t");
 	}
 	Serial.print("\n");
@@ -155,22 +153,22 @@ void work()
 void convertSignals()
 {
 	// Todo:调整信号处理及控制
-	ctrlSignals[yawCh]   = static_cast<int>(map_f(radioSignals[yawCh], MAP_RADIO_LOW, MAP_RADIO_HIGH, GYRO_Z_MIN, GYRO_Z_MAX) * 100 + 0.5);
-	ctrlSignals[pitchCh] = static_cast<int>(map_f(radioSignals[pitchCh], MAP_RADIO_LOW, MAP_RADIO_HIGH, HOLDER_MIN_ANGLE, HOLDER_MAX_ANGLE) + 0.5);
-	ctrlSignals[throCh]  = static_cast<int>(map_f(radioSignals[throCh], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5);
-	ctrlSignals[rollCh]  = static_cast<int>(map_f(radioSignals[rollCh], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5);
+	ctrlSignals[yawCh].push(static_cast<int>(map_f(radioSignals[yawCh], MAP_RADIO_LOW, MAP_RADIO_HIGH, GYRO_Z_MIN, GYRO_Z_MAX) * 100 + 0.5));
+	ctrlSignals[pitchCh].push(static_cast<int>(map_f(radioSignals[pitchCh], MAP_RADIO_LOW, MAP_RADIO_HIGH, HOLDER_MIN_ANGLE, HOLDER_MAX_ANGLE) + 0.5));
+	ctrlSignals[throCh].push(static_cast<int>(map_f(radioSignals[throCh], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5));
+	ctrlSignals[rollCh].push(static_cast<int>(map_f(radioSignals[rollCh], MAP_RADIO_LOW, MAP_RADIO_HIGH, PWM_MIN, PWM_MAX) + 0.5));
 	
 	if(abs(radioSignals[switchCh] - 500) <= 50)
 	{
-		ctrlSignals[switchCh] = SWITCH_MID;
+		ctrlSignals[switchCh].push(SWITCH_MID);
 	}
 	else if (radioSignals[switchCh] >= 950)
 	{
-		ctrlSignals[switchCh] = SWITCH_HIGH;
+		ctrlSignals[switchCh].push(SWITCH_HIGH);
 	}
 	else
 	{
-		ctrlSignals[switchCh] = SWITCH_LOW;
+		ctrlSignals[switchCh].push(SWITCH_HIGH);
 	}
 }
 

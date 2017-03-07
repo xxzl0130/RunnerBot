@@ -45,7 +45,10 @@
     <ClInclude Include="include\DC_Motor\DC_Motor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="file.h">
+    <ClInclude Include="include\Queue.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\file\file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -65,7 +68,7 @@
     <ClCompile Include="include\Radio\Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="file.cpp">
+    <ClCompile Include="include\file\file.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

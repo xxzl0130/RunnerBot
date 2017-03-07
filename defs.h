@@ -28,9 +28,9 @@
 #define PWM_MIN            0
 #define PWM_MAX            255
 
-#define SWITCH_MID         0
-#define SWITCH_HIGH		   1
-#define SWITCH_LOW	       -1
+#define SWITCH_HIGH		   0x12
+#define SWITCH_MID         0x11
+#define SWITCH_LOW	       0x10
 
 #define MOTOR_PIN1         2
 #define MOTOR_PIN2         3

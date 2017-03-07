@@ -1,9 +1,10 @@
 #pragma once
 
 #include <Arduino.h>
-#include "defs.h"
+#include "../../defs.h"
 #include <SPI.h>
 #include <SD.h>
+#include <limits.h>
 
 /*
 ICSP

@@ -51,7 +51,15 @@ void readConfig(int* buf, uchr size)
 		{
 			tmp += t;
 		}
-		buf[i] = tmp.toInt();
+		if(tmp.length() == 0)
+		{
+			// 没有读到数据，以INT_MAX标记
+			buf[i] = INT_MAX;
+		}
+		else
+		{
+			buf[i] = tmp.toInt();
+		}
 	}
 	configFile.close();
 	configFileOpen = false;
